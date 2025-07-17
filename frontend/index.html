@@ -1,1 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-yellow-300">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnapBox</title>
+  <script src="script.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+  <img src="https://upload.wikimedia.org/wikipedia/en/a/ad/Snapchat_logo.svg" class="w-24 mb-4" alt="Snapchat" />
 
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <input type="file" accept="image/*" capture="user" class="hidden" id="photo1" />
+    <div class="bg-white rounded-xl w-32 h-32 flex items-center justify-center text-gray-400" onclick="selectPhoto(1)">Tap 1</div>
+
+    <input type="file" accept="image/*" capture="user" class="hidden" id="photo2" />
+    <div class="bg-white rounded-xl w-32 h-32 flex items-center justify-center text-gray-400" onclick="selectPhoto(2)">Tap 2</div>
+
+    <input type="file" accept="image/*" capture="user" class="hidden" id="photo3" />
+    <div class="bg-white rounded-xl w-32 h-32 flex items-center justify-center text-gray-400" onclick="selectPhoto(3)">Tap 3</div>
+
+    <input type="file" accept="image/*" capture="user" class="hidden" id="photo4" />
+    <div class="bg-white rounded-xl w-32 h-32 flex items-center justify-center text-gray-400" onclick="selectPhoto(4)">Tap 4</div>
+  </div>
+
+  <button onclick="submitPhotos()" class="bg-black text-white px-6 py-2 rounded-xl">Submit</button>
+
+  <div id="msg" class="mt-4 text-xl font-bold hidden text-green-800">🎉 Congratulations you won the task!</div>
+</body>
+</html>
