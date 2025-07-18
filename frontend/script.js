@@ -21,7 +21,7 @@ function submitPhotos() {
     if (fileInput.files[0]) formData.append('photos', fileInput.files[0]);
   }
 
-  fetch('https://snapbox-app.onrender.com/uploads', {
+  fetch('https://snapbox-app.onrender.com/upload', {
     method: 'POST',
     body: formData
   })
