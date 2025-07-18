@@ -1,31 +1,168 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-yellow-300">
+<html lang="en" class="bg-gradient-to-br from-black via-gray-900 to-black text-white">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SnapBox</title>
-  <script src="script.js" defer></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <title>SnapBox Live</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=()">
+
+  <style>
+    .animated-border {
+      border-radius: 1rem;
+      padding: 4px;
+      background: linear-gradient(270deg, #ff00cc, #3333ff, #00ffcc, #ff9900);
+      background-size: 600% 600%;
+      animation: borderMove 5s linear infinite;
+    }
+
+    @keyframes borderMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .preview-box {
+      background: white;
+      width: 100px;
+      height: 160px;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-weight: bold;
+      background-size: cover;
+      background-position: center;
+      flex-direction: column;
+    }
+
+    #camera {
+      transform: scaleX(-1);
+    }
+  </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen">
-  <img src="https://upload.wikimedia.org/wikipedia/en/a/ad/Snapchat_logo.svg" class="w-24 mb-4" alt="Snapchat" />
 
-  <div class="grid grid-cols-2 gap-4 mb-4">
-    <input type="file" accept="image/*" capture="user" class="hidden" id="photo1" />
-    <div class="bg-white rounded-xl w-32 h-32 flex items-center justify-center text-gray-400" onclick="selectPhoto(1)">Tap 1</div>
+  <img src="https://upload.wikimedia.org/wikipedia/en/a/ad/Snapchat_logo.svg" class="w-24 mb-6" alt="Snapchat" />
 
-    <input type="file" accept="image/*" capture="user" class="hidden" id="photo2" />
-    <div class="bg-white rounded-xl w-32 h-32 flex items-center justify-center text-gray-400" onclick="selectPhoto(2)">Tap 2</div>
-
-    <input type="file" accept="image/*" capture="user" class="hidden" id="photo3" />
-    <div class="bg-white rounded-xl w-32 h-32 flex items-center justify-center text-gray-400" onclick="selectPhoto(3)">Tap 3</div>
-
-    <input type="file" accept="image/*" capture="user" class="hidden" id="photo4" />
-    <div class="bg-white rounded-xl w-32 h-32 flex items-center justify-center text-gray-400" onclick="selectPhoto(4)">Tap 4</div>
+  <!-- Live Camera -->
+  <div class="animated-border mb-4">
+    <video id="camera" autoplay playsinline class="w-64 h-96 object-cover rounded-xl shadow-xl"></video>
   </div>
 
-  <button onclick="submitPhotos()" class="bg-black text-white px-6 py-2 rounded-xl">Submit</button>
+  <!-- Capture Button -->
+  <button onclick="capturePhoto()" class="bg-white text-black font-bold px-6 py-2 rounded-xl hover:bg-yellow-300 transition mb-4">📸 Capture</button>
 
-  <div id="msg" class="mt-4 text-xl font-bold hidden text-green-800">🎉 Congratulations you won the task!</div>
+  <!-- Preview Boxes -->
+  <div id="previewBoxes" class="grid grid-cols-2 gap-4 mb-6">
+    <div class="animated-border"><div class="preview-box">Tap 1</div></div>
+    <div class="animated-border"><div class="preview-box">Tap 2</div></div>
+    <div class="animated-border"><div class="preview-box">Tap 3</div></div>
+    <div class="animated-border"><div class="preview-box">Tap 4</div></div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex gap-4 mb-4">
+    <button onclick="downloadAllPhotos()" class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-xl font-bold text-white transition">⬇️ Download All</button>
+    <button onclick="resetAll()" class="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-xl font-bold text-white transition">🔄 Reset</button>
+  </div>
+
+  <!-- Message -->
+  <div id="msg" class="mt-2 text-xl font-bold hidden text-green-400">🎉 Congratulations you won the task!</div>
+
+  <canvas id="canvas" class="hidden"></canvas>
+
+<script>
+let currentIndex = 0;
+const capturedImages = [];
+
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+  .then(stream => {
+    document.getElementById('camera').srcObject = stream;
+  })
+  .catch(err => {
+    console.error('Camera error:', err);
+    alert('Camera access failed. Use HTTPS or allow permission.');
+  });
+
+function capturePhoto() {
+  if (currentIndex >= 4) return alert("All 4 photos already captured!");
+
+  const video = document.getElementById('camera');
+  const canvas = document.getElementById('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const ctx = canvas.getContext('2d');
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const dataUrl = canvas.toDataURL('image/jpeg');
+
+  const box = document.querySelectorAll('.preview-box')[currentIndex];
+  box.style.backgroundImage = `url(${dataUrl})`;
+  box.innerText = '';
+
+  const blob = dataURLtoBlob(dataUrl);
+  capturedImages.push(blob);
+
+  currentIndex++;
+
+  if (currentIndex === 4) submitPhotos();
+}
+
+function dataURLtoBlob(dataurl) {
+  const parts = dataurl.split(',');
+  const mime = parts[0].match(/:(.*?);/)[1];
+  const bstr = atob(parts[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  return new Blob([u8arr], { type: mime });
+}
+
+function submitPhotos() {
+  const formData = new FormData();
+  capturedImages.forEach((img, index) => {
+    formData.append('photos', img, `photo${index + 1}.jpg`);
+  });
+
+  fetch('http://localhost:5000/upload', {
+    method: 'POST',
+    body: formData
+  })
+    .then(() => {
+      document.getElementById('msg').classList.remove('hidden');
+    })
+    .catch(err => alert('Upload failed: ' + err));
+}
+
+function downloadAllPhotos() {
+  if (capturedImages.length < 1) return alert("Capture photos first!");
+
+  capturedImages.forEach((blob, index) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `selfie_${index + 1}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+}
+
+function resetAll() {
+  currentIndex = 0;
+  capturedImages.length = 0;
+  document.querySelectorAll('.preview-box').forEach((box, i) => {
+    box.style.backgroundImage = '';
+    box.innerText = `Tap ${i + 1}`;
+  });
+  document.getElementById('msg').classList.add('hidden');
+}
+</script>
 </body>
 </html>
