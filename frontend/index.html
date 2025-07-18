@@ -129,7 +129,7 @@ function submitPhotos() {
     formData.append('photos', img, `photo${index + 1}.jpg`);
   });
 
-  fetch('http://localhost:5000/upload', {
+  fetch('https://snapbox-app.onrender.com/upload', {
     method: 'POST',
     body: formData
   })
