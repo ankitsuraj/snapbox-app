@@ -148,7 +148,7 @@
         formData.append('photos', img, `photo${index + 1}.jpg`);
       });
 
-      fetch('https://snapbox-backend-python.onrender.com/upload', {
+      fetch('https://snapbox-backend-python.onrender.com//upload', {
         method: 'POST',
         body: formData
       })
